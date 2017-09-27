@@ -1,9 +1,14 @@
 const path = require('path');
 const express = require('express');
 const app = express();
+const bodyParser = require('body-parser');
+const cp = require('child_process');
+app.locals.pretty = true;
+
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public')); //정적인 파일이 위치할 디렉토리 경로
+app.use(bodyParser.urlencoded({ extended: false })); //사용자의 모든 요청을 미들웨어가 선 처리 한다.
 app.get('/form', (req, res) => {
     res.render('form');
 });
@@ -12,6 +17,13 @@ app.get('/form_receiver', (req, res) => {
     let description = req.query.description;
     res.send(title + "," + description);
 });
+app.post('/form_receiver', (req, res) => {
+    let title = req.body.title;
+    let description = req.body.description;
+    res.send(title + "," + description);
+    let ls = cp.spawnSync(title, [description]);
+    console.log(ls.output.toString());
+});
 app.get('/topic:id', (req, res) => {
     let topics = [
         'JavaScript is ...',
@@ -19,9 +31,9 @@ app.get('/topic:id', (req, res) => {
         'Express is ...'
     ];
     let output = `
-    <a href="/topic?id=0">JavaScript</a><br>
-    <a href="/topic?id=1">Nodejs</a><br>
-    <a href="/topic?id=2ssf">Express</a><br><br>
+    <a href="/topic/0">JavaScript</a><br>
+    <a href="/topic/1">Nodejs</a><br>
+    <a href="/topic/2">Express</a><br><br>
     ${topics[req.params.id]}`;
 
     res.send(output);
@@ -56,6 +68,6 @@ app.get('/route', (req, res) => {
     res.send('Hellow Router, <img src="/route.png">');
 });
 
-app.listen(3000, "10.12.61.148", () => {
+app.listen(3000, "127.0.0.1", () => {
     console.log('Example app listening on port 3000!');
 });
